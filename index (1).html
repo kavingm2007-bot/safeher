@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SafeHer — AI Women Safety System</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{--primary:#5B2A86;--secondary:#E91E63;--dark:#241436;--bg:#FAF7FC;--card:#fff;--muted:#6B5C7A;--border:#E9E1F2;--soft:#F4EEF9;--safe:#2FA36B;--danger:#E63946;--warn:#F2A93B;--text:#241436;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17101f;--card:#241a31;--muted:#b3a5c4;--border:#3a2c4a;--soft:#2d2140;--text:#f1eaf8;--dark:#0f0a15}}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;min-height:100%;font-family:Calibri,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
+body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+h1,h2,h3{font-family:Cambria,Georgia,serif;margin:0}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:#241436;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:10px 16px}
+.brand{font-weight:bold;font-size:15px;display:flex;align-items:center;gap:8px}
+.brand i{width:10px;height:10px;border-radius:50%;background:var(--secondary);box-shadow:0 0 0 4px rgba(233,30,99,.28)}
+.tabs{display:flex;gap:6px;background:rgba(255,255,255,.1);padding:4px;border-radius:10px}
+.tab{position:relative;border:none;background:transparent;color:#e6d9f2;padding:8px 14px;border-radius:8px;font-weight:bold;font-size:13px;cursor:pointer}
+.tab.active{background:var(--secondary);color:#fff}
+.badge{position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;font-size:10px;min-width:17px;height:17px;border-radius:9px;display:none;align-items:center;justify-content:center}
+.wrap{max-width:1000px;margin:0 auto;padding:20px 16px 60px}
+.view{display:none}.view.active{display:block}
+.grid2{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+@media(max-width:780px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
+.st{font-size:19px;font-weight:bold}.ss{font-size:12.5px;color:var(--muted);margin:2px 0 14px}
+.hdr{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:20px;font-size:12.5px;font-weight:bold;background:#F0E6F7;color:#5B2A86}
+.pill.warn{background:#FFF2DE;color:#B4720C}.pill.danger{background:#FCE0E2;color:#E63946}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor;animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.3}}
+.hr{display:flex;align-items:center;gap:14px;margin:10px 0}
+.heart{font-size:44px;color:var(--primary);animation:beat 1.4s infinite}
+.heart.mid{animation-duration:1s;color:var(--secondary)}.heart.fast{animation-duration:.5s;color:var(--danger)}
+@keyframes beat{0%,100%{transform:scale(1)}25%{transform:scale(1.18)}40%{transform:scale(1)}}
+.bpm{font-size:50px;font-weight:bold;font-family:Cambria,serif;line-height:1}.unit{font-size:14px;color:var(--muted);margin-left:4px}
+svg.chart{width:100%;height:90px;display:block}
+input[type=range]{width:100%;accent-color:var(--secondary)}
+.btns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.btn{border:none;border-radius:8px;padding:9px 14px;font-size:12.5px;font-weight:bold;cursor:pointer;color:#fff}
+.btn:active{transform:scale(.96)}
+.b-p{background:var(--primary)}.b-d{background:var(--danger)}.b-s{background:var(--safe)}
+.b-o{background:var(--soft);color:var(--text);border:1px solid var(--border)}
+.note{font-size:11.5px;color:var(--muted);margin-top:8px}
+.sos{margin-top:16px;background:linear-gradient(135deg,#E63946,#c1121f);border-radius:14px;padding:14px 16px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px}
+.sos b{display:block;font-size:15px}
+.sos button{background:#fff;color:#E63946;border:none;border-radius:30px;padding:11px 20px;font-weight:bold;cursor:pointer}
+.log{max-height:300px;overflow-y:auto}
+.li{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12.5px}
+.ld{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.lt{color:var(--muted);font-size:10.5px}
+.ov{position:fixed;inset:0;background:rgba(36,20,54,.65);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+.ov.show{display:flex}
+.modal{background:var(--card);border-radius:16px;max-width:420px;width:100%;padding:20px}
+.mh{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.av{width:38px;height:38px;border-radius:50%;background:#241436;display:flex;align-items:center;justify-content:center;font-size:18px}
+.tm{margin-left:auto;font-size:12px;font-weight:bold;color:#E63946;background:#FCE0E2;padding:4px 9px;border-radius:12px}
+.mb{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.chat{display:none;margin-top:12px}.chat.show{display:block}
+.cl{max-height:140px;overflow-y:auto;margin-bottom:8px}
+.cb{padding:8px 12px;border-radius:12px;font-size:13px;margin-bottom:6px;max-width:85%}
+.cb.ai{background:var(--soft)}.cb.u{background:var(--primary);color:#fff;margin-left:auto}
+.cr{display:flex;gap:6px}.cr input{flex:1;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:8px;padding:9px;font-size:13px}
+.al{background:var(--card);border:1px solid var(--border);border-left:5px solid var(--danger);border-radius:14px;padding:16px;margin-bottom:14px}
+.al.ack{border-left-color:var(--warn)}.al.disp{border-left-color:var(--primary)}.al.res{border-left-color:var(--safe);opacity:.8}
+.at{display:flex;justify-content:space-between;gap:10px}
+.an{font-weight:bold;font-size:15px}.am{font-size:11.5px;color:var(--muted);margin-top:3px}
+.tag{font-size:10.5px;font-weight:bold;padding:4px 10px;border-radius:10px;height:fit-content;background:#FCE0E2;color:#E63946}
+.tag.ack{background:#FFF2DE;color:#B4720C}.tag.disp{background:#F0E6F7;color:#5B2A86}.tag.res{background:#E3F5EC;color:#2FA36B}
+.ab{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+@media(max-width:600px){.ab{grid-template-columns:1fr}}
+.ms{background:var(--soft);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.ms .l{font-size:10.5px;color:var(--muted);font-weight:bold;text-transform:uppercase}.ms .v{font-size:15px;font-weight:bold}
+.lmap{height:230px;border-radius:10px;z-index:1}
+.gl{display:inline-block;margin-top:8px;font-size:12px;font-weight:bold;color:var(--primary);text-decoration:none}
+.map{background:#241436;border-radius:10px;height:130px;position:relative;overflow:hidden}
+.mg{position:absolute;inset:0;opacity:.25;background-image:linear-gradient(rgba(255,255,255,.3) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.3) 1px,transparent 1px);background-size:20px 20px}
+.pin{position:absolute;width:14px;height:14px;border-radius:50%;background:#E63946;box-shadow:0 0 0 5px rgba(230,57,70,.35);animation:blink 1s infinite}
+.co{position:absolute;bottom:6px;left:8px;color:#e6d9f2;font-size:10px}
+.chip{display:inline-block;background:var(--soft);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:11px;margin:6px 6px 0 0}
+.stats{display:flex;gap:8px;flex-wrap:wrap}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:12px}
+.sc b{display:block;font-size:17px;font-family:Cambria,serif}
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#241436;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:200;opacity:0;pointer-events:none;transition:opacity .3s;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+
+.ebar{display:none;position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;z-index:150;background:#E63946;color:#fff;padding:16px;text-align:center;font-weight:bold;font-size:16px;cursor:pointer;animation:blink 1s infinite}
+.al.new.t-manual{border-left-color:#E63946;background:#FFF5F5}
+.al.new.t-ai{border-left-color:#F2A93B;background:#FFFAF0}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .al.new.t-manual,:root:not([data-theme="light"]) .al.new.t-ai{background:var(--card)}}
+.tag.ai{background:#FFF2DE;color:#B4720C}
+.why{font-size:12.5px;margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--soft)}
+@media(min-width:1400px){.wrap{max-width:1650px}body{font-size:18px}.st{font-size:28px}.ss,.note{font-size:15px}.bpm{font-size:76px}.heart{font-size:64px}svg.chart{height:140px}.btn{font-size:16px;padding:13px 20px}.lmap{height:440px}.an{font-size:22px}.am,.ms .l{font-size:14px}.ms .v{font-size:20px}.tag{font-size:13px}.pill{font-size:16px}.tab{font-size:16px}.brand{font-size:18px}.log{max-height:520px}.li{font-size:15px}.modal{max-width:560px}.sc{font-size:15px}.sc b{font-size:24px}}
+
+.sent{display:none;margin-top:14px;padding:12px 14px;border-radius:12px;background:#E3F5EC;color:#1d7a50}
+.tk{font-weight:bold;font-size:14px;margin-bottom:4px}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .sent{background:#173325;color:#7fe0b0}}
+.fl{display:block;font-size:12px;font-weight:bold;color:var(--muted);margin:12px 0 4px}
+.fi{width:100%;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:8px;padding:10px;font-size:14px}
+.fr{display:flex;gap:8px}.fr .fi{flex:1;min-width:0}
+.err{color:#E63946;font-size:12.5px;margin-top:8px;font-weight:bold}
+.pinicon{background:none;border:none}
+.pinp{width:22px;height:22px;border-radius:50%;background:#E63946;border:3px solid #fff;box-shadow:0 0 0 4px rgba(230,57,70,.35)}
+.ov#setup{z-index:300}
+</style>
+</head>
+<body>
+<div class="ebar" id="ebar" onclick="switchTab('emergency')"></div>
+<div class="topbar">
+  <div class="brand"><i></i>SafeHer — AI Women Safety System</div>
+  <div class="tabs">
+    <button class="tab active" id="tabP" onclick="switchTab('patient')">🛡️ My Safety App</button>
+    <button class="tab" id="tabE" onclick="switchTab('emergency')">🚨 Response Center<span class="badge" id="badge">0</span></button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="view active" id="view-patient">
+    <div class="hdr">
+      <div>
+        <div class="st" id="hi">Hi 👋</div>
+        <div class="ss">Your AI safety companion is active and watching over you.</div>
+        <div class="note" id="locStat" style="cursor:pointer" onclick="startGPS()">📍 Location: checking…</div>
+      </div>
+      <div class="pill" id="pill"><span class="dot"></span> Normal — Monitoring</div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="st" style="font-size:16px">Live Stress / Heart Rate</div>
+        <div class="ss">Wearable band feed — ESP32 + MAX30102 (simulated in this prototype)</div>
+        <div class="hr"><div class="heart" id="heart">♥</div><div><span class="bpm" id="bpm">72</span><span class="unit">BPM</span></div></div>
+        <svg class="chart" viewBox="0 0 300 90" preserveAspectRatio="none">
+          <polyline id="line" fill="none" stroke="#5B2A86" stroke-width="2.5" points=""/>
+          <line id="thr" x1="0" x2="300" stroke="#E63946" stroke-width="1" stroke-dasharray="4,4"/>
+        </svg>
+        <div class="note">⚠ Distress threshold: <b>120 BPM</b> (dashed line)</div>
+        <div style="margin-top:14px">
+          <div class="note" style="margin:0 0 6px"><b>🎛 Simulate heart rate</b></div>
+          <input type="range" id="slider" min="55" max="180" value="72" oninput="onSlider(this.value)">
+        </div>
+        <div class="btns">
+          <button class="btn b-o" onclick="bumpHR(-15)">− Calm Down</button>
+          <button class="btn b-d" onclick="bumpHR(20)">+ Increase Heart Rate</button>
+          <button class="btn b-o" onclick="resetDemo()">↺ Reset Demo</button>
+          <button class="btn b-o" onclick="openSetup()">⚙ Edit details</button>
+        </div>
+        <div class="sos"><div><b>🆘 Emergency SOS</b>Press if you feel unsafe — skips the AI check-in.</div><button onclick="manualSOS()">SEND SOS NOW</button></div>
+        <div class="sent" id="sent"></div>
+      </div>
+      <div class="card">
+        <div class="st" style="font-size:16px">Activity Log</div>
+        <div class="ss">Real-time system events</div>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="view-emergency">
+    <div class="hdr">
+      <div><div class="st">Police Response Center</div><div class="ss">Alerts received from SafeHer devices (parents receive the same alert)</div></div>
+      <div class="stats">
+        <div class="sc">New<b id="sA">0</b></div><div class="sc">In progress<b id="sK">0</b></div><div class="sc">Resolved<b id="sR">0</b></div>
+      </div>
+    </div>
+    <div id="alerts"></div>
+    <div class="empty" id="empty"><div style="font-size:40px">🛰️</div>No alerts yet. Go to <b>My Safety App</b>, raise the heart rate above 120 BPM, or press SOS.</div>
+    <div class="note" style="text-align:center;margin-top:20px">Prototype note: police and parent delivery is simulated. A real system would use the 112 emergency service and an SMS provider.</div>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div class="ov show" id="setup">
+  <div class="modal" style="max-height:92vh;overflow-y:auto">
+    <div class="st" style="font-size:20px">Welcome to SafeHer 🛡️</div>
+    <div class="ss">One-time setup. Your parents will receive the same alert as the police.</div>
+    <label class="fl">Your name</label><input class="fi" id="sName" placeholder="e.g. Priya Sharma">
+    <label class="fl">Your phone number</label><input class="fi" id="sPhone" inputmode="tel" placeholder="10-digit number">
+    <label class="fl">Parent 1 (name and number)</label>
+    <div class="fr"><input class="fi" id="p1n" placeholder="Mother"><input class="fi" id="p1p" inputmode="tel" placeholder="Phone"></div>
+    <label class="fl">Parent 2 (optional)</label>
+    <div class="fr"><input class="fi" id="p2n" placeholder="Father"><input class="fi" id="p2p" inputmode="tel" placeholder="Phone"></div>
+    <label class="fl">Location permission</label>
+    <button class="btn b-p" style="width:100%" onclick="enableLoc()">📍 Enable Location</button>
+    <div class="note" id="locMsg">Tap this and choose Allow, so your exact location is sent with every alert.</div>
+    <div class="err" id="setupErr"></div>
+    <div class="btns">
+      <button class="btn b-o" onclick="fillDemo()">Use demo details</button>
+      <button class="btn b-s" style="flex:1" onclick="saveSetup()">Save &amp; Start</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI CHECK-IN -->
+<div class="ov" id="ov">
+  <div class="modal">
+    <div class="mh"><div class="av">🤖</div><div><div style="font-weight:bold">SafeHer AI Assistant</div><div style="font-size:11px;color:var(--muted)">checking in with you</div></div><div class="tm" id="tm">30s</div></div>
+    <div style="font-size:14.5px;line-height:1.5" id="aiMsg">Your heart rate went above 120 BPM. Are you safe?</div>
+    <div class="mb">
+      <button class="btn b-s" onclick="respondSafe()">Yes, I am Safe</button>
+      <button class="btn b-d" onclick="respondHelp()">I Need Help</button>
+      <button class="btn b-o" onclick="openChat()">Chat with AI</button>
+    </div>
+    <div class="chat" id="chat">
+      <div class="cl" id="cl"></div>
+      <div class="cr"><input id="ci" placeholder="Type your reply..." onkeydown="if(event.key==='Enter')sendChat()"><button class="btn b-p" onclick="sendChat()">Send</button></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+var TH=120,hr=72,hist=[],busy=false,cool=false,timer=null,left=30,sending=false;
+var alerts=[],seq=1,unseen=0,maps={},watchId=null,lastLoc=null,locErr=null,manualLoc=null,profile=null;
+var DEFAULT={lat:11.0168,lng:76.9558};
+for(var i=0;i<30;i++)hist.push(72);
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);}
+function log(msg,color){
+  var d=document.createElement('div');d.className='li';
+  d.innerHTML='<div class="ld" style="background:'+color+'"></div><div>'+msg+'<div class="lt">'+new Date().toLocaleTimeString()+'</div></div>';
+  var l=$('log');l.insertBefore(d,l.firstChild);
+}
+function dist(a,b,c,d){var R=6371000,r=Math.PI/180,x=(c-a)*r,y=(d-b)*r*Math.cos(a*r);return Math.sqrt(x*x+y*y)*R;}
+function ago(t){var s=Math.round((Date.now()-t)/1000);return s<90?s+' sec':Math.round(s/60)+' min';}
+
+/* ---------- SETUP / PROFILE ---------- */
+function loadProfile(){try{var s=localStorage.getItem('safeher_profile');return s?JSON.parse(s):null;}catch(e){return null;}}
+function saveProfile(p){try{localStorage.setItem('safeher_profile',JSON.stringify(p));}catch(e){}}
+function openSetup(){
+  if(profile){
+    $('sName').value=profile.name;$('sPhone').value=profile.phone;
+    var p=profile.parents;
+    $('p1n').value=p[0]?p[0].name:'';$('p1p').value=p[0]?p[0].phone:'';
+    $('p2n').value=p[1]?p[1].name:'';$('p2p').value=p[1]?p[1].phone:'';
+  }
+  $('setupErr').textContent='';$('setup').classList.add('show');
+}
+function fillDemo(){
+  $('sName').value='Priya Sharma';$('sPhone').value='9876543210';
+  $('p1n').value='Mother';$('p1p').value='9876500001';
+  $('p2n').value='Father';$('p2p').value='9876500002';
+}
+function enableLoc(){
+  $('locMsg').textContent='Asking for location…';
+  if(!navigator.geolocation){$('locMsg').textContent='This device does not support GPS in the browser.';return;}
+  navigator.geolocation.getCurrentPosition(function(p){onPos(p);startGPS();$('locMsg').textContent='✓ Location enabled (±'+Math.round(p.coords.accuracy)+' m)';},
+    function(e){locErr=e.code;$('locMsg').textContent=e.code===1?'Location was blocked. Allow it from the lock icon in the address bar, then try again.':'Could not get location yet. Make sure Location is ON in your phone, and the page is opened with https.';},
+    {enableHighAccuracy:true,maximumAge:0,timeout:12000});
+}
+function saveSetup(){
+  var name=$('sName').value.trim(),ph=$('sPhone').value.replace(/\D/g,''),ps=[];
+  [['p1n','p1p'],['p2n','p2p']].forEach(function(x){
+    var n=$(x[0]).value.trim(),p=$(x[1]).value.replace(/\D/g,'');
+    if(n&&p.length>=10)ps.push({name:n,phone:p});
+  });
+  if(!name||ph.length<10||!ps.length){$('setupErr').textContent='Please enter your name, your 10-digit phone number, and at least one parent (name + number).';return;}
+  profile={name:name,phone:ph,parents:ps};saveProfile(profile);
+  $('setup').classList.remove('show');applyProfile();startGPS();keepAwake();
+  log('Setup saved. '+ps.length+' parent contact(s) registered.','#2FA36B');
+}
+function applyProfile(){$('hi').textContent='Hi, '+profile.name.split(' ')[0]+' 👋';}
+var wl=null;
+function keepAwake(){try{if(navigator.wakeLock){navigator.wakeLock.request('screen').then(function(l){wl=l;}).catch(function(){});}}catch(e){}}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&profile)keepAwake();});
+
+/* ---------- TABS ---------- */
+function switchTab(n){
+  $('view-patient').classList.toggle('active',n==='patient');
+  $('view-emergency').classList.toggle('active',n==='emergency');
+  $('tabP').classList.toggle('active',n==='patient');
+  $('tabE').classList.toggle('active',n==='emergency');
+  if(n==='emergency'){$('ebar').style.display='none';unseen=0;$('badge').style.display='none';renderAlerts();}
+}
+
+/* ---------- HEART RATE ---------- */
+function onSlider(v){hr=parseInt(v,10);updateHR();}
+function bumpHR(d){animateHR(hr,Math.max(55,Math.min(180,hr+d)),1200);}
+function animateHR(s,t,dur){
+  var t0=null;
+  function step(ts){
+    if(!t0)t0=ts;
+    var p=Math.min(1,(ts-t0)/dur);
+    hr=Math.round(s+(t-s)*p);$('slider').value=hr;updateHR();
+    if(busy)return;
+    if(p<1)requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function updateHR(){hist.push(hr);if(hist.length>30)hist.shift();renderHR();checkThreshold();}
+function renderHR(){
+  $('bpm').textContent=hr;
+  $('heart').className='heart '+(hr>=TH?'fast':(hr>95?'mid':''));
+  var pts=hist.map(function(v,i){return ((i/29)*300).toFixed(1)+','+(90-((v-55)/125)*90).toFixed(1);}).join(' ');
+  $('line').setAttribute('points',pts);
+  $('line').setAttribute('stroke',hr>=TH?'#E63946':'#5B2A86');
+  var ty=90-((TH-55)/125)*90;$('thr').setAttribute('y1',ty);$('thr').setAttribute('y2',ty);
+  var p=$('pill');
+  if(busy){p.className='pill warn';p.innerHTML='<span class="dot"></span> AI check-in in progress';}
+  else if(hr>=TH){p.className='pill danger';p.innerHTML='<span class="dot"></span> Abnormal Heart Rate';}
+  else{p.className='pill';p.innerHTML='<span class="dot"></span> Normal — Monitoring';}
+}
+function checkThreshold(){if(hr<TH){cool=false;return;}if(!busy&&!cool&&!sending)startCheckin();}
+
+/* ---------- AI CHECK-IN (30 s) ---------- */
+function startCheckin(){
+  if(!profile){openSetup();return;}
+  busy=true;left=30;
+  log('Heart rate '+hr+' BPM crossed threshold. AI check-in started (30 s).','#F2A93B');
+  $('aiMsg').textContent='Your heart rate went above 120 BPM ('+hr+'). Are you safe?';
+  $('cl').innerHTML='';$('chat').classList.remove('show');
+  $('tm').textContent=left+'s';$('ov').classList.add('show');
+  renderHR();
+  timer=setInterval(function(){
+    left--;$('tm').textContent=left+'s';
+    if(left<=0){closeCheckin();log('No response in 30 s. AI is sending the alert automatically.','#F2A93B');createAlert('User did not respond to the 30-second AI check-in','ai');}
+  },1000);
+}
+function closeCheckin(){clearInterval(timer);busy=false;$('ov').classList.remove('show');}
+function respondSafe(){closeCheckin();cool=true;log('User confirmed safe. No alert sent.','#2FA36B');toast('Glad you are safe. Monitoring continues.');renderHR();}
+function respondHelp(){closeCheckin();cool=true;log('User asked for help.','#E63946');createAlert('User pressed "I need help" during the AI check-in','manual');}
+function manualSOS(){
+  if(!profile){openSetup();return;}
+  if(busy)closeCheckin();cool=true;log('Emergency SOS button pressed.','#E63946');
+  createAlert('User pressed the emergency SOS button','manual');
+}
+function openChat(){$('chat').classList.add('show');if(!$('cl').children.length)addChat('ai','I am here. Tell me what is happening — are you in danger?');}
+function addChat(w,t){var d=document.createElement('div');d.className='cb '+w;d.textContent=t;$('cl').appendChild(d);$('cl').scrollTop=9999;}
+function sendChat(){
+  var v=$('ci').value.trim();if(!v)return;
+  addChat('u',v);$('ci').value='';
+  var low=v.toLowerCase();
+  if(/help|danger|follow|scared|unsafe|attack|afraid/.test(low)){
+    addChat('ai','That sounds serious. Sending an alert to the police and your parents now.');
+    setTimeout(function(){closeCheckin();cool=true;log('AI detected distress in chat.','#E63946');createAlert('AI detected distress in the chat','ai');},1200);
+  }else if(/safe|fine|ok|okay|exercise|run|walk/.test(low)){
+    addChat('ai','Good to hear. I will mark you as safe.');setTimeout(respondSafe,1200);
+  }else addChat('ai','Can you tell me if you are safe or need help?');
+}
+
+/* ---------- LOCATION ---------- */
+function onPos(p){lastLoc={lat:p.coords.latitude,lng:p.coords.longitude,acc:p.coords.accuracy||0,t:Date.now()};locErr=null;showLoc();liveUpdate();}
+function onPosErr(e){locErr=e.code;showLoc();}
+function startGPS(){
+  if(!navigator.geolocation){showLoc();return;}
+  if(watchId!==null)navigator.geolocation.clearWatch(watchId);
+  watchId=navigator.geolocation.watchPosition(onPos,onPosErr,{enableHighAccuracy:true,maximumAge:0,timeout:20000});
+}
+function showLoc(){
+  var t;
+  if(!navigator.geolocation)t='📍 GPS is not supported on this device';
+  else if(locErr===1)t='📍 Location blocked — allow it in browser settings, then tap here';
+  else if(lastLoc&&Date.now()-lastLoc.t<60000)t=lastLoc.acc<=150?'📍 Live GPS locked (±'+Math.round(lastLoc.acc)+' m)':'📍 Approximate location only (±'+Math.round(lastLoc.acc)+' m) — a phone gives exact GPS';
+  else t='📍 Waiting for location… tap here to enable';
+  if(!window.isSecureContext)t+=' · open the https link';
+  $('locStat').textContent=t;
+}
+setInterval(showLoc,5000);
+function pick(l,forced){
+  if(l.acc>150&&manualLoc)return {lat:manualLoc.lat,lng:manualLoc.lng,acc:0,src:'manual'};
+  return {lat:l.lat,lng:l.lng,acc:l.acc,src:forced||(l.acc<=150?'live':'approx'),t:l.t};
+}
+function getFix(cb){
+  var done=false;
+  function fallback(){
+    if(lastLoc)cb(pick(lastLoc,lastLoc.acc<=150||!manualLoc?'last':null));
+    else if(manualLoc)cb({lat:manualLoc.lat,lng:manualLoc.lng,acc:0,src:'manual'});
+    else cb({lat:DEFAULT.lat,lng:DEFAULT.lng,acc:0,src:'default'});
+  }
+  if(!navigator.geolocation){fallback();return;}
+  var to=setTimeout(function(){if(!done){done=true;fallback();}},7500);
+  navigator.geolocation.getCurrentPosition(
+    function(p){if(done)return;done=true;clearTimeout(to);onPos(p);cb(pick(lastLoc));},
+    function(){if(done)return;done=true;clearTimeout(to);fallback();},
+    {enableHighAccuracy:true,maximumAge:0,timeout:7000});
+}
+function srcLabel(a){
+  if(a.src==='live')return 'Live GPS ±'+Math.round(a.acc)+' m';
+  if(a.src==='approx')return 'Approximate (network) ±'+Math.round(a.acc)+' m';
+  if(a.src==='last')return 'Last known location ('+ago(a.t)+' old)';
+  if(a.src==='manual')return 'Manually corrected pin';
+  return 'Default location (GPS not shared)';
+}
+function geocode(a){
+  fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&lat='+a.lat+'&lon='+a.lng)
+    .then(function(r){return r.json();})
+    .then(function(j){a.addr=j.display_name||'';var e=$('addr'+a.id);if(e)e.textContent=a.addr?'📌 '+a.addr:'';})
+    .catch(function(){});
+}
+function liveUpdate(){
+  if(!lastLoc||lastLoc.acc>150)return;
+  alerts.forEach(function(a){
+    if(a.status==='res'||a.src==='manual')return;
+    var moved=dist(a.lat,a.lng,lastLoc.lat,lastLoc.lng);
+    a.lat=lastLoc.lat;a.lng=lastLoc.lng;a.acc=lastLoc.acc;a.src='live';
+    if(moved>8)a.trail.push([a.lat,a.lng]);
+    if(!a.gLat||dist(a.gLat,a.gLng,a.lat,a.lng)>60){a.gLat=a.lat;a.gLng=a.lng;geocode(a);}
+    updateMap(a);
+  });
+}
+function updateTexts(a){
+  var l=$('loc'+a.id);if(l)l.textContent=a.lat.toFixed(5)+', '+a.lng.toFixed(5);
+  var s=$('src'+a.id);if(s)s.textContent=srcLabel(a);
+  var g=$('gm'+a.id);if(g)g.href='https://www.google.com/maps?q='+a.lat+','+a.lng;
+}
+function updateMap(a){
+  updateTexts(a);
+  var m=maps[a.id];if(!m)return;
+  var ll=[a.lat,a.lng];
+  m.marker.setLatLng(ll);m.circle.setLatLng(ll);m.circle.setRadius(a.acc||0);m.trail.setLatLngs(a.trail);
+  if(!m.map.getBounds().contains(ll))m.map.panTo(ll);
+}
+function setManual(a,ll){
+  a.lat=ll.lat;a.lng=ll.lng;a.acc=0;a.src='manual';a.trail=[[a.lat,a.lng]];
+  manualLoc={lat:a.lat,lng:a.lng};a.gLat=a.lat;a.gLng=a.lng;
+  geocode(a);updateMap(a);log('Pin corrected manually for alert #'+a.id+'.','#5B2A86');
+}
+
+/* ---------- ALERTS ---------- */
+function beep(){
+  try{
+    var c=new (window.AudioContext||window.webkitAudioContext)();
+    [0,0.35,0.7].forEach(function(t){
+      var o=c.createOscillator(),g=c.createGain();o.type='square';o.frequency.value=880;g.gain.value=0.15;
+      o.connect(g);g.connect(c.destination);o.start(c.currentTime+t);o.stop(c.currentTime+t+0.2);
+    });
+  }catch(e){}
+}
+function createAlert(reason,type){
+  if(sending)return;sending=true;
+  toast('Getting your exact location…');
+  var snap=hr;
+  getFix(function(loc){
+    var a={id:seq++,name:profile.name,phone:profile.phone,parents:profile.parents,hr:snap,time:new Date(),status:'new',reason:reason,type:type,
+      lat:loc.lat,lng:loc.lng,acc:loc.acc,src:loc.src,t:loc.t,trail:[[loc.lat,loc.lng]],gLat:loc.lat,gLng:loc.lng};
+    alerts.unshift(a);unseen++;
+    var b=$('badge');b.style.display='flex';b.textContent=unseen;
+    if(type==='manual')b.style.background='#E63946';else if(unseen===1)b.style.background='#F2A93B';
+    log((type==='manual'?'EMERGENCY SOS':'AI-triggered alert')+' sent to police and parents. '+srcLabel(a)+'.','#E63946');
+    showSent(a);geocode(a);
+    if(type==='manual'){
+      beep();
+      var e=$('ebar');e.textContent='🚨 EMERGENCY SOS from '+a.name+' — tap to open the map';e.style.display='block';
+    }
+    toast(type==='manual'?'🚨 Emergency SOS sent':'🤖 AI sent an automatic alert');
+    sending=false;renderAlerts();renderHR();
+    if(hr<TH)cool=false;
+  });
+}
+function showSent(a){
+  var names=a.parents.map(function(p){return esc(p.name);}).join(', ');
+  var el=$('sent');el.style.display='block';
+  el.innerHTML='<div class="tk">✓ Sent to Police Control Room</div><div class="tk">✓ Sent to Parents ('+names+')</div><div class="note" style="margin:6px 0 0">'+a.time.toLocaleTimeString()+' · sending is simulated in this prototype</div>';
+}
+function setStatus(id,s){
+  alerts.forEach(function(a){if(a.id===id)a.status=s;});
+  log('Alert #'+id+' marked '+s+'.','#5B2A86');renderAlerts();
+}
+function renderAlerts(){
+  Object.keys(maps).forEach(function(k){try{maps[k].map.remove();}catch(e){}});maps={};
+  var c=$('alerts');c.innerHTML='';
+  $('empty').style.display=alerts.length?'none':'block';
+  var A=0,K=0,R=0;
+  alerts.forEach(function(a){
+    if(a.status==='new')A++;else if(a.status==='res')R++;else K++;
+    var label={new:'NEW',ack:'ACKNOWLEDGED',disp:'PATROL DISPATCHED',res:'RESOLVED'}[a.status];
+    var btns='';
+    if(a.status==='new')btns='<button class="btn b-p" onclick="setStatus('+a.id+',\'ack\')">Acknowledge</button>';
+    if(a.status==='ack')btns='<button class="btn b-p" onclick="setStatus('+a.id+',\'disp\')">Dispatch patrol</button>';
+    if(a.status==='disp')btns='<button class="btn b-s" onclick="setStatus('+a.id+',\'res\')">Mark resolved</button>';
+    var man=a.type==='manual';
+    var title=man?'🚨 EMERGENCY SOS — '+esc(a.name):'🤖 AI-TRIGGERED ALERT — '+esc(a.name);
+    var why=man?'<b>Source: user pressed the emergency SOS button.</b> Treat as a confirmed emergency.'
+      :'<b>Source: sent automatically by the SafeHer AI.</b> The user did not press SOS. No reply within the 30-second check-in. Please verify.';
+    var parents=a.parents.map(function(p){return '<span class="chip">👤 '+esc(p.name)+' · '+esc(p.phone)+' ✓ notified</span>';}).join('');
+    var d=document.createElement('div');
+    d.className='al '+(a.status==='new'?'new t-'+(man?'manual':'ai'):a.status);
+    d.innerHTML='<div class="at"><div><div class="an">'+title+'</div><div class="am">Alert #'+a.id+' · '+a.time.toLocaleTimeString()+' · '+esc(a.reason)+'</div></div><span class="tag '+(a.status==='new'?(man?'':'ai'):a.status)+'">'+(a.status==='new'?(man?'EMERGENCY SOS':'AI ALERT'):label)+'</span></div>'
+    +'<div class="why">'+why+'</div>'
+    +'<div class="ab"><div>'
+    +'<div class="ms"><div class="l">Heart rate</div><div class="v">'+a.hr+' BPM</div></div>'
+    +'<div class="ms"><div class="l">User phone</div><div class="v">'+esc(a.phone)+'</div></div>'
+    +'<div class="ms"><div class="l">Location</div><div class="v" id="loc'+a.id+'"></div><div class="note" style="margin:4px 0 0" id="src'+a.id+'"></div><div class="note" style="margin:4px 0 0" id="addr'+a.id+'">'+(a.addr?'📌 '+esc(a.addr):'')+'</div></div>'
+    +'<a class="gl" id="gm'+a.id+'" target="_blank" rel="noopener" href="#">Open in Google Maps ↗</a></div>'
+    +'<div><div class="lmap" id="map'+a.id+'"></div><div class="note">Wrong place? Drag the red pin or tap the map to correct it.</div></div></div>'
+    +'<div>'+parents+'<span class="chip">👮 Police control room ✓ received</span></div>'
+    +'<div class="btns">'+btns+'</div>';
+    c.appendChild(d);
+    updateTexts(a);
+  });
+  $('sA').textContent=A;$('sK').textContent=K;$('sR').textContent=R;
+  if($('view-emergency').classList.contains('active'))alerts.forEach(buildMap);
+}
+function buildMap(a){
+  var el=$('map'+a.id);if(!el)return;
+  if(!window.L){el.className='map';el.innerHTML='<div class="mg"></div><div class="pin" style="left:50%;top:50%"></div><div class="co">Map not loaded — check internet</div>';return;}
+  var map=L.map(el).setView([a.lat,a.lng],17);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+  var circle=L.circle([a.lat,a.lng],{radius:a.acc||0,color:'#E63946',weight:1,fillOpacity:.12}).addTo(map);
+  var trail=L.polyline(a.trail,{color:'#5B2A86',weight:4,opacity:.8}).addTo(map);
+  var icon=L.divIcon({className:'pinicon',html:'<div class="pinp"></div>',iconSize:[26,26],iconAnchor:[13,13]});
+  var marker=L.marker([a.lat,a.lng],{icon:icon,draggable:true}).addTo(map);
+  marker.on('dragend',function(){setManual(a,marker.getLatLng());});
+  map.on('click',function(e){setManual(a,e.latlng);});
+  maps[a.id]={map:map,marker:marker,circle:circle,trail:trail};
+  setTimeout(function(){map.invalidateSize();},150);
+}
+
+/* ---------- RESET + INIT ---------- */
+function resetDemo(){
+  clearInterval(timer);busy=false;cool=false;sending=false;$('ov').classList.remove('show');
+  $('ebar').style.display='none';$('sent').style.display='none';
+  hr=72;hist=[];for(var i=0;i<30;i++)hist.push(72);$('slider').value=72;
+  alerts=[];seq=1;unseen=0;$('badge').style.display='none';$('log').innerHTML='';
+  renderHR();renderAlerts();log('Demo reset.','#6B5C7A');
+}
+profile=loadProfile();
+renderHR();renderAlerts();showLoc();
+if(profile){$('setup').classList.remove('show');applyProfile();startGPS();keepAwake();log('System started. Monitoring active.','#2FA36B');}
+else{log('Waiting for first-time setup.','#F2A93B');}
+
+</script>
+</body>
+</html>
