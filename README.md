@@ -1,19 +1,27 @@
-Project Description:
-A smart women safety system that uses a Bluetooth safety band connected to a mobile application. The system helps users send emergency SOS alerts and share their location during dangerous situations.
-Key Features:
-🆘 Emergency SOS Alerts
-📍 GPS Live Location Tracking
-🗺️ OpenStreetMap Integration
-📱 Mobile Application Connectivity
-📡 Bluetooth Safety Band Connectivity
-Goal: To improve women's safety through wearable technology and emergency alert systems.
-🎬 Instagram Reel Caption
-🚨 Women Safety SOS System | My Project 💜
-Building a smarter and safer future for women! 👩‍💻
-💜 Bluetooth Safety Band
-🆘 Emergency SOS Alerts
-📍 Live Location Tracking
-🗺️ Map Integration
-📱 Smart Safety Application
-Technology isn't just about innovation; it's about making a difference in people's lives. 💫
-#WomenSafety #SOSSystem #WomenSafetyProject #IoT #Bluetooth #GPS #OpenStreetMap #EngineeringStudent #ProjectDevelopment #TechForGood
+# SafeHer – Women Safety SOS System
+
+# About the Project
+
+SafeHer is a women’s safety project designed to help women during emergency situations. It uses a Bluetooth safety band connected to a mobile application to support emergency SOS alerts and location tracking.
+
+The project uses GPS to identify the user's location and OpenStreetMap to display the location on a map. The main aim of SafeHer is to provide a technology-based safety solution that helps users access emergency support when needed.
+
+## Features
+
+- Emergency SOS Alert
+- Bluetooth Safety Band Connectivity
+- GPS Location Tracking
+- OpenStreetMap Integration
+
+## Technologies Used
+
+- HTML
+- CSS
+- JavaScript
+- GPS
+- Bluetooth
+- OpenStreetMap
+
+## Project Goal
+
+The goal of SafeHer is to improve women's safety by combining a Bluetooth safety band, emergency alerts, and location tracking in a simple and accessible system.
